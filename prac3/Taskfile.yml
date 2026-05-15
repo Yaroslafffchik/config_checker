@@ -1,0 +1,39 @@
+﻿version: '3'
+
+tasks:
+  restore:
+    desc: Восстановить зависимости
+    cmds:
+      - dotnet restore
+
+  run:training:
+    desc: Запуск в учебном режиме
+    cmds:
+      - dotnet run --project src/Task3.Web -- --App:Mode=Training
+
+  run:production:
+    desc: Запуск в боевом режиме
+    env:
+      APP__MODE: Production
+    cmds:
+      - dotnet run --project src/Task3.Web
+
+  test:
+    desc: Запуск всех тестов
+    cmds:
+      - dotnet test
+
+  test:training:
+    desc: Тесты с учебным режимом через окружение
+    env:
+      APP__MODE: Training
+    cmds:
+      - dotnet test
+
+  test:production:
+    desc: Тесты с боевым режимом через окружение
+    env:
+      APP__MODE: Production
+    cmds:
+      - dotnet test
+
