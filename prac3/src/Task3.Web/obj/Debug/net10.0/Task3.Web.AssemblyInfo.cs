@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Task3.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+25b6aeff02dcf93410a545d857495fb3467d775b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8ee33a7cb8dd716d3bf422cb8f5718de69809e6e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Task3.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Task3.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

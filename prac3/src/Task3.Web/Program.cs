@@ -40,7 +40,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(settings.AllowedOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .WithExposedHeaders("X-Content-Type-Options", "X-Frame-Options", "Cache-Control", "Access-Control-Allow-Origin");
     });
 });
 

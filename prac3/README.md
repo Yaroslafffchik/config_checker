@@ -88,5 +88,85 @@ task test:production
 
 Переключение режимов выполняется только через настройки.
 
+## Тестирование CORS из браузера
+
+### Запуск HTML-страницы
+1. Запусти API (см. раздел "Запуск").
+2. Запусти тестовый фронт:
+
+```powershell
+task web:serve
+```
+
+3. Открой в браузере:
+
+```text
+http://localhost:5173/test-cors.html
+```
+
+На странице есть кнопки для проверки:
+- доступ к `GET /items`
+- создание `POST /items`
+- проверка security headers
+- спам-запросы для rate limiting
+
+### Примеры fetch в консоли браузера
+
+Доверенный origin:
+```javascript
+fetch('http://localhost:5000/items', {
+  method: 'GET',
+  headers: {
+    'Origin': 'http://localhost:5173'
+  }
+})
+.then(r => r.json())
+.then(d => console.log('✓ localhost:5173 РАЗРЕШЕН:', d))
+.catch(e => console.error('✗ Ошибка:', e));
+```
+
+Недоверенный origin:
+```javascript
+fetch('http://localhost:5000/items', {
+  method: 'GET',
+  headers: {
+    'Origin': 'http://evil.test'
+  }
+})
+.then(r => r.json())
+.then(d => console.log('✗ ДОЛЖНО БЫТЬ БЛОКИРОВАНО, но вы видите:', d))
+.catch(e => console.log('✓ Браузер заблокировал CORS:', e.message));
+```
+
+Проверка защитных заголовков:
+```javascript
+fetch('http://localhost:5000/items', {
+  method: 'GET',
+  headers: {
+    'Origin': 'http://localhost:5173'
+  }
+})
+.then(r => {
+  console.log('X-Content-Type-Options:', r.headers.get('X-Content-Type-Options'));
+  console.log('X-Frame-Options:', r.headers.get('X-Frame-Options'));
+  console.log('Cache-Control:', r.headers.get('Cache-Control'));
+  console.log('Access-Control-Allow-Origin:', r.headers.get('Access-Control-Allow-Origin'));
+  return r.json();
+})
+.then(d => console.log('Ответ:', d));
+```
+
+Проверка rate limiting:
+```javascript
+for (let i = 0; i < 50; i++) {
+  fetch('http://localhost:5000/items', {
+    method: 'GET',
+    headers: {
+      'Origin': 'http://localhost:5173'
+    }
+  })
+  .then(r => console.log(`Запрос ${i + 1}: статус ${r.status}`));
+}
+```
 
 Репозиторий с проектом: https://github.com/Yaroslafffchik/config_checker/tree/main

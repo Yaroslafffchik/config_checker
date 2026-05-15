@@ -37,3 +37,12 @@ tasks:
     cmds:
       - dotnet test
 
+  web:serve:
+    desc: Запуск тестового фронта для CORS (http://localhost:5173)
+    cmds:
+      - python -m http.server 5173 --directory web
+
+  web:NotAllowed:
+    desc: Запуск тестового фронта для CORS (http://localhost:5663) - не разрешенный оригин для CORS
+    cmds:
+      - python -m http.server 5663 --directory web

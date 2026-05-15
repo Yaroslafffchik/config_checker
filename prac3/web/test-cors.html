@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование CORS и API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 5px 5px 0;
+            font-size: 14px;
+        }
+        button:hover { background: #0056b3; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #1e7e34; }
+        .output {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-left: 4px solid #007bff;
+        }
+        .output.error { border-left-color: #dc3545; }
+        .output.success { border-left-color: #28a745; }
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тестирование CORS и Rate Limiting</h1>
+
+    <div class="info">
+        <strong>Текущий origin страницы:</strong> <code id="currentOrigin">-</code><br>
+        <strong>API:</strong> <code>http://localhost:5000</code>
+    </div>
+
+    <div class="section">
+        <h2>Доверенные Origin'ы</h2>
+        <button onclick="getItems()">GET /items (с текущего origin)</button>
+        <div id="corsSuccess" class="output"></div>
+    </div>
+
+    <div class="section">
+        <h2>Защитные заголовки</h2>
+        <button class="success" onclick="checkHeaders()">Проверить Security Headers</button>
+        <div id="headers" class="output"></div>
+    </div>
+
+    <div class="section">
+        <h2>Операции с данными</h2>
+        <button onclick="getItems()">GET /items (получить все)</button>
+        <button onclick="createItem()">POST /items (создать новый)</button>
+        <button class="danger" onclick="spamRequests(50)">Спам 50 запросов (rate limit)</button>
+        <div id="data" class="output"></div>
+    </div>
+
+    <div class="section">
+        <h2>Логи</h2>
+        <button onclick="clearLogs()">Очистить логи</button>
+        <div id="logs" class="output"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+        const logElement = document.getElementById('logs');
+
+        document.getElementById('currentOrigin').textContent = location.origin;
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLogs() {
+            logElement.textContent = '';
+        }
+
+        async function checkHeaders() {
+            try {
+                log('Проверяю security headers...');
+                const response = await fetch(`${API_URL}/items`);
+                const headers = {
+                    'X-Content-Type-Options': response.headers.get('X-Content-Type-Options'),
+                    'X-Frame-Options': response.headers.get('X-Frame-Options'),
+                    'Cache-Control': response.headers.get('Cache-Control'),
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin')
+                };
+
+                let headerInfo = 'Найденные заголовки:\n\n';
+                for (const [key, value] of Object.entries(headers)) {
+                    headerInfo += `${key}: ${value || 'не присутствует'}\n`;
+                }
+
+                document.getElementById('headers').textContent = headerInfo;
+                log('Заголовки получены');
+            } catch (error) {
+                log(`Ошибка: ${error.message}`);
+            }
+        }
+
+        async function getItems() {
+            try {
+                log('Запрашиваю список...');
+                const response = await fetch(`${API_URL}/items`);
+                const data = await response.json();
+
+                log(`Получено элементов: ${data.length || 0}`);
+                document.getElementById('data').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                log(`Ошибка: ${error.message}`);
+            }
+        }
+
+        async function createItem() {
+            try {
+                const name = prompt('Имя элемента:', 'Тест');
+                if (!name) {
+                    return;
+                }
+
+                log(`Создаю "${name}"...`);
+                const response = await fetch(`${API_URL}/items`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    log(`Создан! ID: ${data.id}`);
+                } else {
+                    log(`Ошибка: ${data.error}`);
+                }
+                getItems();
+            } catch (error) {
+                log(`Ошибка: ${error.message}`);
+            }
+        }
+
+        async function spamRequests(count) {
+            log(`Спам ${count} запросов...`);
+            let success = 0;
+            let limited = 0;
+
+            for (let i = 0; i < count; i++) {
+                try {
+                    const response = await fetch(`${API_URL}/items`);
+                    if (response.status === 200) {
+                        success++;
+                    } else if (response.status === 429) {
+                        limited++;
+                    }
+                } catch {
+                }
+            }
+
+            log(`OK: ${success}, Rate Limited: ${limited}`);
+            document.getElementById('data').textContent = `Успешных: ${success}\nЗаблокировано: ${limited}`;
+        }
+
+        window.addEventListener('load', () => {
+            log('Страница готова');
+            log(`Origin: ${location.origin}`);
+        });
+    </script>
+</body>
+</html>
+
