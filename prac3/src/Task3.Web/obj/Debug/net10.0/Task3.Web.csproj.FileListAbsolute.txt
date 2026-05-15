@@ -26,3 +26,4 @@ D:\mirea\6-sem\Frameworks-6\prac3\prac3\src\Task3.Web\obj\Debug\net10.0\refint\T
 D:\mirea\6-sem\Frameworks-6\prac3\prac3\src\Task3.Web\obj\Debug\net10.0\Task3.Web.pdb
 D:\mirea\6-sem\Frameworks-6\prac3\prac3\src\Task3.Web\obj\Debug\net10.0\Task3.Web.genruntimeconfig.cache
 D:\mirea\6-sem\Frameworks-6\prac3\prac3\src\Task3.Web\obj\Debug\net10.0\ref\Task3.Web.dll
+D:\mirea\6-sem\Frameworks-6\prac3\prac3\src\Task3.Web\obj\Debug\net10.0\Task3.Web.sourcelink.json
